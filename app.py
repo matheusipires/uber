@@ -22,13 +22,36 @@ APP_TITLE = "Uber Business"
 SUBTITLE = "Visão geral de viagens, parametrização e auditoria"
 
 # ===================== CONFIG BANCO =====================
-HIST_DB_PATH = os.getenv("HIST_DB_PATH", st.secrets.get("HIST_DB_PATH", ".uber_history/history.sqlite"))
-HIST_TABLE = st.secrets.get("HIST_TABLE", "uber_trips")
-ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", None)  # opcional
+# ===================== CONFIG BANCO =====================
+import os
+import streamlit as st
 
-SUPERVISOR_PW_SALT = st.secrets.get("SUPERVISOR_PW_SALT", "orbis-supervisor-salt")  # SALT legado (compat)
+def _secret_or_default(key: str, default=None):
+    """Lê de st.secrets se existir; senão devolve default sem quebrar."""
+    try:
+        # só tenta acessar se o objeto tiver o key e o secrets estiver carregado
+        # em Streamlit, acessar st.secrets sem arquivo levanta FileNotFoundError
+        return st.secrets[key]  # pode levantar; por isso o try/except
+    except Exception:
+        return default
 
-os.makedirs(os.path.dirname(HIST_DB_PATH), exist_ok=True)
+HIST_DB_PATH = os.getenv(
+    "HIST_DB_PATH",
+    _secret_or_default("HIST_DB_PATH", ".uber_history/history.sqlite"),
+)
+HIST_TABLE = os.getenv(
+    "HIST_TABLE",
+    _secret_or_default("HIST_TABLE", "uber_trips"),
+)
+ADMIN_PASSWORD = os.getenv(
+    "ADMIN_PASSWORD",
+    _secret_or_default("ADMIN_PASSWORD", None),
+)
+
+SUPERVISOR_PW_SALT = os.getenv(
+    "SUPERVISOR_PW_SALT",
+    _secret_or_default("SUPERVISOR_PW_SALT", "orbis-supervisor-salt"),
+)
 
 # ---------------------- Utilidades de valores ----------------------
 CURRENCY_SYMBOL = {"BRL": "R$", "USD": "$", "EUR": "€", "R$": "R$", "$": "$", "€": "€"}
