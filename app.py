@@ -12,6 +12,7 @@ import hashlib
 import urllib.parse
 from datetime import datetime, date
 from typing import List, Optional, Iterable, Tuple
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -22,36 +23,33 @@ APP_TITLE = "Uber Business"
 SUBTITLE = "Visão geral de viagens, parametrização e auditoria"
 
 # ===================== CONFIG BANCO =====================
-# ===================== CONFIG BANCO =====================
-import os
-import streamlit as st
 
-def _secret_or_default(key: str, default=None):
-    """Lê de st.secrets se existir; senão devolve default sem quebrar."""
-    try:
-        # só tenta acessar se o objeto tiver o key e o secrets estiver carregado
-        # em Streamlit, acessar st.secrets sem arquivo levanta FileNotFoundError
-        return st.secrets[key]  # pode levantar; por isso o try/except
-    except Exception:
-        return default
+def _secrets_file_exists() -> bool:
+    # Evita acessar st.secrets quando não há secrets.toml (Render)
+    return any([
+        (Path.home() / ".streamlit" / "secrets.toml").exists(),
+        (Path.cwd() / ".streamlit" / "secrets.toml").exists(),
+    ])
 
-HIST_DB_PATH = os.getenv(
-    "HIST_DB_PATH",
-    _secret_or_default("HIST_DB_PATH", ".uber_history/history.sqlite"),
-)
-HIST_TABLE = os.getenv(
-    "HIST_TABLE",
-    _secret_or_default("HIST_TABLE", "uber_trips"),
-)
-ADMIN_PASSWORD = os.getenv(
-    "ADMIN_PASSWORD",
-    _secret_or_default("ADMIN_PASSWORD", None),
-)
+def _cfg(key: str, default=None):
+    # 1º: Environment Variable (Render)
+    v = os.getenv(key)
+    if v is not None:
+        return v
+    # 2º: secrets.toml se existir (ambiente local)
+    if _secrets_file_exists():
+        try:
+            return st.secrets.get(key, default)
+        except Exception:
+            return default
+    # 3º: default
+    return default
 
-SUPERVISOR_PW_SALT = os.getenv(
-    "SUPERVISOR_PW_SALT",
-    _secret_or_default("SUPERVISOR_PW_SALT", "orbis-supervisor-salt"),
-)
+HIST_DB_PATH = _cfg("HIST_DB_PATH", ".uber_history/history.sqlite")
+HIST_TABLE = _cfg("HIST_TABLE", "uber_trips")
+ADMIN_PASSWORD = _cfg("ADMIN_PASSWORD", None)
+SUPERVISOR_PW_SALT = _cfg("SUPERVISOR_PW_SALT", "orbis-supervisor-salt")
+
 
 # ---------------------- Utilidades de valores ----------------------
 CURRENCY_SYMBOL = {"BRL": "R$", "USD": "$", "EUR": "€", "R$": "R$", "$": "$", "€": "€"}
