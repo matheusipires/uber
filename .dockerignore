@@ -7,3 +7,4 @@ data/
 .uber_history/
 .uber_cache/
 .streamlit/secrets.toml
+
