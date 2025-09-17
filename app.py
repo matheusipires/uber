@@ -22,7 +22,7 @@ APP_TITLE = "Uber Business"
 SUBTITLE = "Visão geral de viagens, parametrização e auditoria"
 
 # ===================== CONFIG BANCO =====================
-HIST_DB_PATH = st.secrets.get("HIST_DB_PATH", ".uber_history/history.sqlite")
+HIST_DB_PATH = os.getenv("HIST_DB_PATH", st.secrets.get("HIST_DB_PATH", ".uber_history/history.sqlite"))
 HIST_TABLE = st.secrets.get("HIST_TABLE", "uber_trips")
 ADMIN_PASSWORD = st.secrets.get("ADMIN_PASSWORD", None)  # opcional
 
