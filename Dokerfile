@@ -1,0 +1,24 @@
+FROM python:3.11-slim
+
+ENV PIP_NO_CACHE_DIR=1 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+
+# Render fornece $PORT; usaremos 8000 localmente
+EXPOSE 8000
+
+# diretório de dados persistente (o volume vai montar aqui)
+RUN mkdir -p /data
+
+# Streamlit servindo para fora
+ENV HIST_DB_PATH=/data/history.sqlite
+CMD streamlit run app.py --server.port ${PORT:-8000} --server.address 0.0.0.0
